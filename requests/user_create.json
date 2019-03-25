@@ -1,0 +1,11 @@
+{
+  "id_number": "6987345",
+  "name": "Pedro",
+  "last_name": "Yupanqui",
+  "email_address": "peddroyupanqui@hotmail.com",
+  "birthday": "1990-02-01",
+  "username": "pedroy",
+  "password": "aGxPñaKJ?_aRd",
+  "password_expire": true,
+  "is_admin": true
+}
