@@ -29,7 +29,13 @@ class User(Base):
     password_expire = Column(Boolean, nullable=False)
     is_admin = Column(Boolean, nullable=False)
     is_enabled = Column(Boolean, nullable=False, default=True)
-    token = Column(String(200))
+
+
+class Session(Base):
+    __tablename__ = 'session'
+    id = Column(Integer, primary_key=True)
+    token = Column(String(200), nullable=False)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
 
 
 class UsedPassword(Base):
@@ -45,3 +51,4 @@ class AuthSettings(Base):
     failed_login_maximum_number = Column(Integer, nullable=False)
     password_expiration_time_days = Column(Integer, nullable=False)
     session_expiration_time_min = Column(Integer, nullable=False)
+    simultaneous_sessions_nro_allowed = Column(Integer, nullable=False)
