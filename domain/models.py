@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import (
     Column,
     Integer,
-    String, DateTime, Boolean, ForeignKey, Date)
+    String, DateTime, Boolean, ForeignKey, Date, BigInteger)
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -23,8 +23,11 @@ class User(Base):
     creation_datetime = Column(DateTime, default=datetime.now)
     update_datetime = Column(DateTime, default=datetime.now)
     password_expiration_datetime = Column(DateTime)
+    password_expiration_epoch = Column(Integer)
     session_expiration_datetime = Column(DateTime)
+    session_expiration_epoch = Column(Integer)
     last_password_change_datetime = Column(DateTime)
+    last_password_change_int = Column(Integer)
     last_logout_datetime = Column(DateTime)
     password_expire = Column(Boolean, nullable=False)
     is_admin = Column(Boolean, nullable=False)
@@ -49,6 +52,6 @@ class AuthSettings(Base):
     __tablename__ = 'auth_settings'
     id = Column(Integer, primary_key=True)
     failed_login_maximum_number = Column(Integer, nullable=False)
-    password_expiration_time_days = Column(Integer, nullable=False)
-    session_expiration_time_min = Column(Integer, nullable=False)
+    password_expiration_epoch = Column(BigInteger, nullable=False)  # epoch
+    session_expiration_epoch = Column(BigInteger, nullable=False)  # months days minutes
     simultaneous_sessions_nro_allowed = Column(Integer, nullable=False)
