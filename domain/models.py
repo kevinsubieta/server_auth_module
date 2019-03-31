@@ -33,7 +33,7 @@ class User(Base):
     password_expire = Column(Boolean, nullable=False)
     is_admin = Column(Boolean, nullable=False)
     is_enabled = Column(Boolean, nullable=False, default=True)
-    is_first_login = Column(Boolean, nullable=False, default=True)
+    must_change_password = Column(Boolean, nullable=False, default=True)
 
 
 class Session(Base):

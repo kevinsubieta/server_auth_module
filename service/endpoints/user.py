@@ -1,8 +1,8 @@
 from sqlalchemy.exc import IntegrityError
 
 from database.db import transaction
-from repository.user_repo import get_user_by_username_password, change_password, insert_user
-from service.constants import WRONG_USERNAME_PASSWORD
+from repository.user_repo import get_user_by_username_password, change_password, insert_user, password_exists, get_settings
+from service.constants import WRONG_USERNAME_PASSWORD, PASSWORD_USED
 from service.endpoints import Handler
 from service.utils import str_to_user, encrypt_user_password
 
@@ -29,5 +29,9 @@ class UserUpdatePasswordHandler(Handler):
             if user is None:
                 self.error(WRONG_USERNAME_PASSWORD)
             else:
-                change_password(db, user, new_password)
-                self.res(dict(success=True))
+                if password_exists(db, user.id, new_password):
+                    self.error(PASSWORD_USED)
+                else:
+                    settings = get_settings(db)
+                    change_password(db, user, new_password, settings)
+                    self.res(dict(success=True))

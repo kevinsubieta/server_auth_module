@@ -9,7 +9,7 @@ from service.constants import WRONG_USERNAME_PASSWORD, MUST_CHANGE_PASSWORD, DIS
 from service.endpoints import Handler
 
 
-def res(must_change_password: bool = None, is_failed_login: bool = None, is_user_enabled: bool = None, token: str = None, error: str = None) -> dict:
+def res(must_change_password: bool = None, is_failed_login: bool = None, is_user_enabled: bool = None, token: str = None, error: str = None, is_admin: bool = None) -> dict:
     return dict(must_change_password=must_change_password, failed_login=is_failed_login, user_enabled=is_user_enabled, token=token, error=error)
 
 
@@ -21,9 +21,9 @@ def login(db, user: User, password: str) -> dict:
     if user.password != encrypt(password):
         fail_login(db, user)
         return res(is_failed_login=True, is_user_enabled=True, error=WRONG_USERNAME_PASSWORD)
-    if user.is_first_login or user.password_expiration_datetime > datetime.now():
+    if user.must_change_password or user.password_expiration_datetime > datetime.now():
         return res(is_failed_login=False, is_user_enabled=True, must_change_password=True, error=MUST_CHANGE_PASSWORD)
-    return res(is_failed_login=False, must_change_password=False, is_user_enabled=False, token=login_db(db, user))
+    return res(is_failed_login=False, must_change_password=False, is_user_enabled=False, token=login_db(db, user), is_admin=user.is_admin)
 
 
 class LoginHandler(Handler):

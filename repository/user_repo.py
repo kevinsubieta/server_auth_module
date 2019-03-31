@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session as alchemy
 
 from application.auth import encrypt, create_token
-from domain.models import User, Session, AuthSettings
+from domain.models import User, Session, AuthSettings, UsedPassword
 from repository.utils import current_datetime_epoch
 
 
@@ -26,11 +26,12 @@ def create_session(db: alchemy, token: str, user_id):
     db.commit()
 
 
-def change_password(db: alchemy, user: User, password: str):
+def change_password(db: alchemy, user: User, password: str, settings: AuthSettings):
+    db.add(UsedPassword(password=user.password, user_id=user.id))
     user.password = encrypt(password)
-    user.is_first_login = False
+    user.must_change_password = False
     user.last_password_change_datetime, user.last_password_change_epoch = current_datetime_epoch()
-    user.password_expiration_epoch = user.last_password_change_epoch + get_settings(db).password_expiration_epoch
+    user.password_expiration_epoch = user.last_password_change_epoch + settings.password_expiration_epoch
     user.password_expiration_datetime = datetime.fromtimestamp(float(user.password_expiration_epoch) / 1000.)
     db.commit()
 
@@ -52,7 +53,7 @@ def fail_login(db: alchemy, user: User):
 
 def login(db: alchemy, user: User) -> str:
     token = create_token()
-    db.add(Session(token=create_token(), user_id=user.id))
+    db.add(Session(token=token, user_id=user.id))
     user.failed_login_number = 0
     db.commit()
     return token
@@ -60,3 +61,17 @@ def login(db: alchemy, user: User) -> str:
 
 def get_settings(db: alchemy) -> AuthSettings:
     return db.query(AuthSettings).order_by(AuthSettings.creation_datetime.desc()).first()
+
+
+def password_exists(db: alchemy, user_id, password) -> bool:
+    return db.query(UsedPassword).filter(UsedPassword.user_id == user_id).filter(UsedPassword.password == encrypt(password)).first() is not None
+
+
+def is_admin(db: alchemy, token: str) -> bool:
+    session = db.query(Session).filter(Session.token == token).first()
+    if session is None:
+        return False
+    user: User = db.query(User).get(session.user_id)
+    if user is None:
+        return False
+    return user.is_admin

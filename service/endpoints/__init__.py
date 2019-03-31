@@ -11,10 +11,7 @@ class Handler(RequestHandler):
         pass
 
     def error(self, msg):
-        self.write(json.dumps({'response': '', 'error': msg}))
-
-    def respond(self, obj):
-        self.write(json.dumps({'response': obj, 'error': ''}))
+        self.write(json.dumps(dict(success=False, error=msg)))
 
     def res(self, data: dict):
         if ERROR not in data:
