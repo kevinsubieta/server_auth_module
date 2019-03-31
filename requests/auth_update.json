@@ -1,0 +1,6 @@
+{
+  "failed_login_maximum_number": 3,
+  "password_expiration_epoch": 100,
+  "session_expiration_epoch": 10,
+  "simultaneous_sessions_nro_allowed": 1
+}

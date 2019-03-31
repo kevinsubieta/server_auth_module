@@ -3,7 +3,7 @@ from datetime import date, datetime
 from typing import List
 
 from application.auth import encrypt
-from domain.models import User
+from domain.models import User, AuthSettings
 
 
 def str_to_date(date_str: str) -> date:
@@ -42,3 +42,16 @@ def str_to_user(user_str: str) -> User:
 def encrypt_user_password(user: User) -> User:
     user.password = encrypt(user.password)
     return user
+
+
+def str_to_auth_settings(auth_settings_str: str) -> AuthSettings:
+    return create_obj(
+        AuthSettings,
+        json.loads(auth_settings_str),
+        [
+            'failed_login_maximum_number',
+            'password_expiration_epoch',
+            'session_expiration_epoch',
+            'simultaneous_sessions_nro_allowed'
+        ]
+    )

@@ -31,7 +31,7 @@ def change_password(db: alchemy, user: User, password: str):
     user.is_first_login = False
     user.last_password_change_datetime, user.last_password_change_epoch = current_datetime_epoch()
     user.password_expiration_epoch = user.last_password_change_epoch + get_settings(db).password_expiration_epoch
-    user.password_expiration_datetime = datetime.fromtimestamp(user.password_expiration_epoch).strftime('%c')
+    user.password_expiration_datetime = datetime.fromtimestamp(float(user.password_expiration_epoch) / 1000.)
     db.commit()
 
 
@@ -59,4 +59,4 @@ def login(db: alchemy, user: User) -> str:
 
 
 def get_settings(db: alchemy) -> AuthSettings:
-    return db.query(AuthSettings).order_by(AuthSettings.creation_datetime.desc())
+    return db.query(AuthSettings).order_by(AuthSettings.creation_datetime.desc()).first()
