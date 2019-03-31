@@ -38,7 +38,7 @@ class DB:
 
 
 @contextmanager
-def transaction():
+def transaction() -> Session:
     session = DB.get_session()
     try:
         yield session

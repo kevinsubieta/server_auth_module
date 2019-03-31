@@ -8,7 +8,7 @@ from service import AppMaker as Maker
 
 def main():
     config = ConfigParser()
-    config.read('settings.ini')
+    config.read('settings2.ini')
     Maker.create(config)
     t = 'running ... \nhttp://%s:%s/'
     DB.read(config)

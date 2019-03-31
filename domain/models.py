@@ -27,11 +27,13 @@ class User(Base):
     session_expiration_datetime = Column(DateTime)
     session_expiration_epoch = Column(Integer)
     last_password_change_datetime = Column(DateTime)
-    last_password_change_int = Column(Integer)
+    last_password_change_epoch = Column(Integer)
     last_logout_datetime = Column(DateTime)
+    last_logout_epoch = Column(DateTime)
     password_expire = Column(Boolean, nullable=False)
     is_admin = Column(Boolean, nullable=False)
     is_enabled = Column(Boolean, nullable=False, default=True)
+    is_first_login = Column(Boolean, nullable=False, default=True)
 
 
 class Session(Base):
@@ -51,6 +53,7 @@ class UsedPassword(Base):
 class AuthSettings(Base):
     __tablename__ = 'auth_settings'
     id = Column(Integer, primary_key=True)
+    creation_datetime = Column(DateTime, default=datetime.now)
     failed_login_maximum_number = Column(Integer, nullable=False)
     password_expiration_epoch = Column(BigInteger, nullable=False)  # epoch
     session_expiration_epoch = Column(BigInteger, nullable=False)  # months days minutes

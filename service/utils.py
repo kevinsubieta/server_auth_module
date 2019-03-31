@@ -2,6 +2,7 @@ import json
 from datetime import date, datetime
 from typing import List
 
+from application.auth import encrypt
 from domain.models import User
 
 
@@ -35,4 +36,9 @@ def str_to_user(user_str: str) -> User:
         ]
     )
     user.birthday = str_to_date(data['birthday'])
+    return user
+
+
+def encrypt_user_password(user: User) -> User:
+    user.password = encrypt(user.password)
     return user
