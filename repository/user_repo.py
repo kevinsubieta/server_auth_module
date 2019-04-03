@@ -45,10 +45,12 @@ def logout(db: alchemy, token: str):
     db.commit()
 
 
-def fail_login(db: alchemy, user: User):
+def fail_login(db: alchemy, user: User) -> int:
+    settings = get_settings(db)
     user.failed_login_number += 1
-    user.is_enabled = user.failed_login_number < get_settings(db).failed_login_maximum_number
+    user.is_enabled = user.failed_login_number <= settings.failed_login_maximum_number
     db.commit()
+    return settings.failed_login_maximum_number - user.failed_login_number
 
 
 def login(db: alchemy, user: User) -> str:
@@ -72,6 +74,13 @@ def is_admin(db: alchemy, token: str) -> bool:
     if session is None:
         return False
     user: User = db.query(User).get(session.user_id)
+    return user.is_admin if user is not None else False
+
+
+def enable_user(db: alchemy, username: str, is_enabled: bool):
+    user = db.query(User).filter(User.username == username).first()
     if user is None:
-        return False
-    return user.is_admin
+        return
+    user.failed_login_number = 0
+    user.is_enabled = is_enabled
+    db.commit()

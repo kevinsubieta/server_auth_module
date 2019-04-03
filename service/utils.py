@@ -52,6 +52,15 @@ def str_to_auth_settings(auth_settings_str: str) -> AuthSettings:
             'failed_login_maximum_number',
             'password_expiration_epoch',
             'session_expiration_epoch',
-            'simultaneous_sessions_nro_allowed'
+            'simultaneous_sessions_nro_allowed',
+            'min_special_letters_number',
+            'min_uppercase_letters_number',
+            'min_password_len',
         ]
     )
+
+
+def remove(list_: list, obj) -> list:
+    aux = list(list_)
+    aux.remove(obj)
+    return aux

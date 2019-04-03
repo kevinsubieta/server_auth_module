@@ -58,3 +58,6 @@ class AuthSettings(Base):
     password_expiration_epoch = Column(BigInteger, nullable=False)  # epoch
     session_expiration_epoch = Column(BigInteger, nullable=False)  # months days minutes
     simultaneous_sessions_nro_allowed = Column(Integer, nullable=False)
+    min_special_letters_number = Column(Integer, nullable=False)
+    min_uppercase_letters_number = Column(Integer, nullable=False)
+    min_password_len = Column(Integer, nullable=False)

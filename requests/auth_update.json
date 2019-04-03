@@ -2,5 +2,8 @@
   "failed_login_maximum_number": 3,
   "password_expiration_epoch": 100,
   "session_expiration_epoch": 10,
-  "simultaneous_sessions_nro_allowed": 1
+  "simultaneous_sessions_nro_allowed": 1,
+  "min_special_letters_number": 1,
+  "min_uppercase_letters_number": 1,
+  "min_password_len": 8
 }
