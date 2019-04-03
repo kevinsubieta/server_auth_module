@@ -20,9 +20,9 @@ def login(db, user: User, password: str) -> dict:
         return res(is_user_enabled=False, error=DISABLED_USER)
     if user.password != encrypt(password):
         return res(is_failed_login=True, is_user_enabled=True, error=FAILED_LOGIN % fail_login(db, user))
-    if user.must_change_password or user.password_expiration_datetime > datetime.now():
+    if user.must_change_password or user.password_expiration_datetime < datetime.now():
         return res(is_failed_login=False, is_user_enabled=True, must_change_password=True, error=MUST_CHANGE_PASSWORD)
-    return res(is_failed_login=False, must_change_password=False, is_user_enabled=False, token=login_db(db, user), is_admin=user.is_admin)
+    return res(is_failed_login=False, must_change_password=False, is_user_enabled=True, token=login_db(db, user), is_admin=user.is_admin)
 
 
 class LoginHandler(Handler):

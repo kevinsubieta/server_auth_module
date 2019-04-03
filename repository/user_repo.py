@@ -32,7 +32,7 @@ def change_password(db: alchemy, user: User, password: str, settings: AuthSettin
     user.must_change_password = False
     user.last_password_change_datetime, user.last_password_change_epoch = current_datetime_epoch()
     user.password_expiration_epoch = user.last_password_change_epoch + settings.password_expiration_epoch
-    user.password_expiration_datetime = datetime.fromtimestamp(float(user.password_expiration_epoch) / 1000.)
+    user.password_expiration_datetime = datetime.fromtimestamp(float(user.password_expiration_epoch))
     db.commit()
 
 
@@ -48,7 +48,7 @@ def logout(db: alchemy, token: str):
 def fail_login(db: alchemy, user: User) -> int:
     settings = get_settings(db)
     user.failed_login_number += 1
-    user.is_enabled = user.failed_login_number <= settings.failed_login_maximum_number
+    user.is_enabled = user.failed_login_number + 1 < settings.failed_login_maximum_number
     db.commit()
     return settings.failed_login_maximum_number - user.failed_login_number
 
