@@ -77,10 +77,11 @@ def is_admin(db: alchemy, token: str) -> bool:
     return user.is_admin if user is not None else False
 
 
-def enable_user(db: alchemy, username: str, is_enabled: bool):
+def enable_user(db: alchemy, username: str, is_enabled: bool) -> bool:
     user = db.query(User).filter(User.username == username).first()
     if user is None:
-        return
+        return False
     user.failed_login_number = 0
     user.is_enabled = is_enabled
     db.commit()
+    return True

@@ -27,14 +27,20 @@ def login(db, user: User, password: str) -> dict:
 
 class LoginHandler(Handler):
     def post(self):
+        if not self.is_authenticated():
+            return
         username = self.get_argument('username')
         password = self.get_argument('password')
         with transaction() as db:
-            self.res(login(db, get_user_by_username(db, username), password))
+            response = login(db, get_user_by_username(db, username), password)
+            print(datetime.now(), 'login response ->', response)
+            self.res(response)
 
 
 class LogoutHandler(Handler):
     def post(self):
+        if not self.is_authenticated():
+            return
         token = self.get_argument('token')
         with transaction() as db:
             logout(db, token)

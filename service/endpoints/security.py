@@ -7,15 +7,23 @@ from service.utils import str_to_auth_settings
 
 class CreateAuthHandler(Handler):
     def post(self):
+        if not self.is_authenticated():
+            return
+        token = self.get_argument('token')
         auth_settings = str_to_auth_settings(self.get_argument('auth_settings'))
         with transaction() as db:
-            db.add(auth_settings)
-            db.commit()
-        self.res(dict(success=True))
+            if is_admin(db, token):
+                db.add(auth_settings)
+                db.commit()
+                self.res(dict(success=True))
+            else:
+                self.error(NOT_AUTHORIZED)
 
 
 class GetAuthHandler(Handler):
     def post(self):
+        if not self.is_authenticated():
+            return
         token = self.get_argument('token')
         with transaction() as db:
             if is_admin(db, token):
