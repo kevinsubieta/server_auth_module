@@ -1,8 +1,6 @@
-import os
 from contextlib import contextmanager
 from importlib import import_module
 from inspect import getmembers
-from os.path import isfile
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -27,19 +25,10 @@ class DB:
         for name, obj in getmembers(module):
             pass
 
-    @classmethod
-    def create_tables(cls, settings):
-        p = settings['alembic']['sqlalchemy.url'].split('///')[-1]
-        p = os.path.join(os.getcwd(), p)
-        if not isfile(p):
-            m = import_module(settings['alembic']['models_location'] + '.models')
-            base = getattr(m, 'Base')
-            base.metadata.create_all(cls.engine)
-
 
 @contextmanager
-def transaction() -> Session:
-    session = DB.get_session()
+def transaction():
+    session: Session = DB.get_session()
     try:
         yield session
     except:
