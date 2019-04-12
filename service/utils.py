@@ -1,66 +1,38 @@
-import json
-from datetime import date, datetime
-from typing import List
+import base64
 
-from application.auth import encrypt
-from domain.models import User, AuthSettings
+from flask import request as flask_request
 
+from domain.constants import UserAuthErrors
 
-def str_to_date(date_str: str) -> date:
-    return datetime.strptime(date_str, '%Y-%m-%d').date()
+USER_AUTH = "Vk7iBxhuaYZSCncLIbZazA==Cz8hZS/sv70ZgG7G01DhWQ=="
+TOKEN_AUTH = "2a10YEm0utdWochklUhh8zZ78.SghQhV48VDem1voeO9yDihEHI2vA1US"
 
 
-def create_obj(class_, values: dict, keys: List[str]):
-    obj = class_()
-    for key in values:
-        if key in keys:
-            setattr(obj, key, values[key])
-    return obj
+def respond(error: str = None) -> dict:
+    return dict(success=error is None or len(error) == 0, error=error)
 
 
-def str_to_user(user_str: str) -> User:
-    data = json.loads(user_str)
-    user = create_obj(
-        User,
-        data,
-        [
-            'id_number',
-            'name',
-            'last_name',
-            'email_address',
-            'birthday',
-            'username',
-            'password',
-            'password_expire',
-            'is_admin'
-        ]
-    )
-    user.birthday = str_to_date(data['birthday'])
-    return user
+def is_valid_basic_auth(auth_header: str) -> bool:
+    username, password = base64.b64decode(auth_header.split(None, 1)[-1]).decode('ascii').split(':', 1)
+    return username == USER_AUTH and TOKEN_AUTH == password
 
 
-def encrypt_user_password(user: User) -> User:
-    user.password = encrypt(user.password)
-    return user
+def verify_basic_auth_header(auth_header: str) -> bool:
+    return auth_header and auth_header.startswith('Basic ') and is_valid_basic_auth(auth_header)
 
 
-def str_to_auth_settings(auth_settings_str: str) -> AuthSettings:
-    return create_obj(
-        AuthSettings,
-        json.loads(auth_settings_str),
-        [
-            'failed_login_maximum_number',
-            'password_expiration_epoch',
-            'session_expiration_epoch',
-            'simultaneous_sessions_nro_allowed',
-            'min_special_letters_number',
-            'min_uppercase_letters_number',
-            'min_password_len',
-        ]
-    )
+def verify_basic_auth(request) -> bool:
+    return verify_basic_auth_header(request.headers.get('Authorization'))
 
 
-def remove(list_: list, obj) -> list:
-    aux = list(list_)
-    aux.remove(obj)
-    return aux
+from functools import wraps
+
+
+def basic_auth(function, *args, **kwargs):
+    @wraps(function)
+    def super_function(*args, **kwargs):
+        if not verify_basic_auth(flask_request):
+            return respond(UserAuthErrors.NOT_AUTHORIZED)
+        return function(*args, **kwargs)
+
+    return super_function

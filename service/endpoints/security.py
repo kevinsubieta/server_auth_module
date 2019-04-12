@@ -1,8 +1,9 @@
-from database.db import transaction
-from repository.user_repo import get_settings, is_admin
-from service.constants import NOT_AUTHORIZED
+from repository import transaction
+from repository.user_repo import is_admin
+from repository.auth_settings_repo import get_settings
+from domain.constants import NOT_AUTHORIZED
 from service.endpoints import Handler
-from service.utils import str_to_auth_settings
+from adapters.auth_settings_adapters import str_to_auth_settings
 
 
 class CreateAuthHandler(Handler):

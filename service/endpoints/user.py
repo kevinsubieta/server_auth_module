@@ -2,44 +2,46 @@ from typing import List
 
 from sqlalchemy.exc import IntegrityError
 
+from adapters.user_adapters import str_to_user
 from application.auth import encrypt
-from database.db import transaction
+from domain.constants import WRONG_USERNAME_PASSWORD, PASSWORD_USED, PASSWORD_TOO_SHORT, FEW_SPECIALS, FEW_UPPERCASE, SPECIAL_CHARS, UPPERCASE_LETTERS, NOT_AUTHORIZED, USER_NOT_FOUND, VALID
 from domain.models import AuthSettings, User
-from repository.user_repo import get_user_by_username_password, change_password, insert_user, password_exists, get_settings, enable_user, is_admin, get_user_by_username
-from service.constants import WRONG_USERNAME_PASSWORD, PASSWORD_USED, PASSWORD_TOO_SHORT, FEW_SPECIALS, FEW_UPPERCASE, SPECIAL_CHARS, UPPERCASE_LETTERS, NOT_AUTHORIZED, USER_NOT_FOUND
+from functional.utils import remove
+from repository import transaction
+from repository.user_repo import get_user_by_username_password, change_password, password_exists, enable_user, is_admin, get_user_by_username
+from repository.auth_settings_repo import get_settings
 from service.endpoints import Handler
-from service.utils import str_to_user, encrypt_user_password, remove
+from service.utils import verify_basic_auth, respond
 
 
 def res(error: str = ''):
     return dict(error=error, success=len(error) <= 0)
 
 
+def respond_user(user_id=None, error: str = None) -> dict:
+    return dict(user_id=user_id, error=error)
+
+
+def is_valid(msg: str, function: callable, *args, **kwargs) -> dict:
+    return respond_user(error=msg) if msg is not VALID else respond_user(function(*args, **kwargs))
+
+
 class UserCreateHandler(Handler):
     def post(self):
-        if not self.is_authenticated():
-            return
         user = str_to_user(self.get_argument('user'))
         token = self.get_argument('token')
         try:
             with transaction() as db:
-                if is_admin(db, token):
-                    response = validate(user, get_settings(db), user.password, db)
-                    if not response['success']:
-                        self.res(response)
-                    else:
-                        user_id = insert_user(db, encrypt_user_password(user))
-                        self.res(dict(user_id=user_id))
-                else:
-                    self.error(NOT_AUTHORIZED)
-        except IntegrityError as e:
+                if not verify_basic_auth(self) or not is_admin(db, token):
+                    return respond(NOT_AUTHORIZED)
+
+                # self.res(verify_basic_auth(self, create_user_service, db, token, user))
+        except IntegrityError:
             self.error('the username is already in used, choose other')
 
 
 class UserEnableHandler(Handler):
     def post(self):
-        if not self.is_authenticated():
-            return
         username = self.get_argument('username')
         to_enable = self.get_argument('to_enable')
         token = self.get_argument('token')
@@ -102,15 +104,15 @@ def has_enough(password: str, min_: int, specials: List[str]) -> bool:
         else has_enough(password[1:], min_, specials)
 
 
-def validate(user: User, settings: AuthSettings, password: str, db) -> dict:
+def validate(user: User, settings: AuthSettings, password: str, db) -> str:
     if user is None:
-        return res(WRONG_USERNAME_PASSWORD)
+        return WRONG_USERNAME_PASSWORD
     if user.id is not None and (password_exists(db, user.id, password) or user.password == encrypt(password)):
-        return res(PASSWORD_USED)
+        return PASSWORD_USED
     if len(password) < settings.min_password_len:
-        return res(PASSWORD_TOO_SHORT % settings.min_password_len)
+        return PASSWORD_TOO_SHORT % settings.min_password_len
     if not has_enough(password, settings.min_special_letters_number, SPECIAL_CHARS):
-        return res(FEW_SPECIALS % settings.min_special_letters_number)
+        return FEW_SPECIALS % settings.min_special_letters_number
     if not has_enough(password, settings.min_uppercase_letters_number, UPPERCASE_LETTERS):
-        return res(FEW_UPPERCASE % settings.min_uppercase_letters_number)
-    return res()
+        return FEW_UPPERCASE % settings.min_uppercase_letters_number
+    return VALID

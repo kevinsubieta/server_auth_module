@@ -1,11 +1,11 @@
 from datetime import datetime
 
 from application.auth import encrypt
-from database.db import transaction
+from repository import transaction
 from domain.models import User
-from repository.user_repo import get_user_by_username, login as login_db, fail_login
-from repository.user_repo import logout
-from service.constants import WRONG_USERNAME_PASSWORD, MUST_CHANGE_PASSWORD, DISABLED_USER, FAILED_LOGIN
+from repository.user_repo import get_user_by_username
+from repository.session_repo import logout, fail_login, login as login_db
+from domain.constants import WRONG_USERNAME_PASSWORD, MUST_CHANGE_PASSWORD, DISABLED_USER, FAILED_LOGIN
 from service.endpoints import Handler
 
 
@@ -20,7 +20,7 @@ def login(db, user: User, password: str) -> dict:
         return res(is_user_enabled=False, error=DISABLED_USER)
     if user.password != encrypt(password):
         return res(is_failed_login=True, is_user_enabled=True, error=FAILED_LOGIN % fail_login(db, user))
-    if user.must_change_password or user.password_expiration_datetime < datetime.now():
+    if user.password_expire and (user.must_change_password or user.password_expiration_datetime < datetime.now()):
         return res(is_failed_login=False, is_user_enabled=True, must_change_password=True, error=MUST_CHANGE_PASSWORD)
     return res(is_failed_login=False, must_change_password=False, is_user_enabled=True, token=login_db(db, user), is_admin=user.is_admin)
 

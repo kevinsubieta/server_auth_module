@@ -4,7 +4,7 @@ from typing import Optional, Awaitable
 
 from tornado.web import RequestHandler
 
-from service.constants import ERROR, NOT_AUTHORIZED
+from domain.constants import ERROR, NOT_AUTHORIZED
 
 USER_AUTH = "Vk7iBxhuaYZSCncLIbZazA==Cz8hZS/sv70ZgG7G01DhWQ=="
 TOKEN_AUTH = "2a10YEm0utdWochklUhh8zZ78.SghQhV48VDem1voeO9yDihEHI2vA1US"

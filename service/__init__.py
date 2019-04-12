@@ -1,19 +1,17 @@
-import tornado.web
+from flask import Flask
 
-from database.db import DB
-from service.routes import routes
+from repository import DB
+from service.f_endpoints.user import user_api
+
+app = Flask(__name__)
+
+app.register_blueprint(user_api)
 
 
-class AppMaker:
-    port = int()
-    address = str()
-
-    @classmethod
-    def create(cls, config):
-        settings = config['server:main']
-        host = settings['listen'].split(':')
-        cls.port = int(host[-1])
-        cls.address = host[0]
-        DB.read(config)
-        app = tornado.web.Application(routes, **settings)
-        app.listen(cls.port, cls.address)
+def setup(config):
+    settings = config['server:main']
+    host = settings['listen'].split(':')
+    port = int(host[-1])
+    address = host[0]
+    DB.read(config)
+    return address, port
